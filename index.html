@@ -118,41 +118,56 @@ body::before {
 /* ════════════════════════
    LOGO + HEADER
 ════════════════════════ */
-.page-header { text-align:center; padding:22px 0 18px; }
+.page-header { text-align:center; padding:28px 0 20px; }
 
 .app-logo {
   display:inline-block;
-  width:72px; height:72px; margin-bottom:14px;
-  border-radius:20px;
-  box-shadow: 0 0 0 1px rgba(14,165,233,0.2), 0 8px 32px rgba(14,165,233,0.25), 0 0 60px rgba(16,185,129,0.12);
+  width:72px; height:72px; margin-bottom:16px;
+  border-radius:18px;
+  box-shadow: 0 0 0 1px rgba(14,165,233,0.25), 0 8px 32px rgba(14,165,233,0.25), 0 0 60px rgba(16,185,129,0.12);
   animation: logo-float 4s ease-in-out infinite;
   overflow:hidden;
 }
 @keyframes logo-float {
-  0%,100%{ transform:translateY(0) rotate(0deg); box-shadow:0 0 0 1px rgba(14,165,233,0.2), 0 8px 32px rgba(14,165,233,0.25); }
-  50%     { transform:translateY(-5px) rotate(.5deg); box-shadow:0 0 0 1px rgba(16,185,129,0.3), 0 16px 40px rgba(16,185,129,0.3); }
+  0%,100%{ transform:translateY(0); box-shadow:0 0 0 1px rgba(14,165,233,0.2), 0 8px 32px rgba(14,165,233,0.25); }
+  50%    { transform:translateY(-5px); box-shadow:0 0 0 1px rgba(16,185,129,0.35), 0 16px 40px rgba(16,185,129,0.3); }
 }
 
+/* ── v1-style terminal badge ── */
 .app-badge {
-  display:inline-flex; align-items:center; gap:6px;
-  background:rgba(14,165,233,0.1); border:1px solid rgba(14,165,233,0.25);
-  color:var(--blue-lt); padding:5px 14px 5px 10px;
-  border-radius:99px; font-size:11px; font-weight:800;
-  margin-bottom:12px; letter-spacing:.04em;
-  animation:pulse-glow 3s ease-in-out infinite;
+  display:inline-flex; align-items:center; gap:8px;
+  background:transparent;
+  border:1px solid var(--green);
+  color:var(--green-lt);
+  padding:5px 16px;
+  border-radius:20px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:11px; font-weight:700;
+  margin-bottom:16px; letter-spacing:.18em;
+  animation:pulse-border 2.5s ease-in-out infinite;
 }
 .app-badge .dot { width:7px; height:7px; border-radius:50%; background:var(--green-lt); box-shadow:0 0 6px var(--green); animation:blink 1.4s ease-in-out infinite; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
-@keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 0 rgba(14,165,233,.2)} 50%{box-shadow:0 0 0 8px rgba(14,165,233,0)} }
-
-.page-title {
-  font-size:clamp(2.2rem,8vw,3.2rem); font-weight:900;
-  letter-spacing:-.03em; line-height:1;
-  background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+@keyframes pulse-border {
+  0%,100%{ box-shadow:0 0 0 0 rgba(16,185,129,.35); }
+  50%    { box-shadow:0 0 0 7px rgba(16,185,129,0); }
 }
+
+/* ── Big bold mono title like v1 ── */
+.page-title {
+  font-family:'JetBrains Mono', monospace;
+  font-size:clamp(2rem, 9vw, 3.2rem);
+  font-weight:700;
+  letter-spacing:.04em;
+  line-height:1.05;
+  color:var(--text);
+}
+.page-title .t-blue  { color:var(--blue-lt); }
+.page-title .t-green { color:var(--green-lt); }
+
 .page-subtitle {
   font-family:'JetBrains Mono',monospace; color:var(--muted);
-  font-size:11px; margin-top:8px; letter-spacing:.06em;
+  font-size:12px; margin-top:10px; letter-spacing:.06em;
 }
 
 /* ════════════════════════
@@ -517,9 +532,9 @@ body::before {
         <text x="256" y="495" text-anchor="middle" font-family="Arial" font-weight="700" font-size="22" letter-spacing="10" fill="url(#lg2)" opacity=".5">JUDGE</text>
       </svg>
     </div>
-    <div class="app-badge"><span class="dot"></span>JUDGE MODE LIVE</div>
-    <div class="page-title">ExpoJudge</div>
-    <div class="page-subtitle">// rate · review · inspire engineers</div>
+    <div class="app-badge"><span class="dot"></span>⚡ EXPO JUDGE MODE ACTIVE</div>
+    <div class="page-title"><span class="t-blue">EXPO</span><span class="t-green">JUDGE</span></div>
+    <div class="page-subtitle">// engineering project evaluation &amp; feedback tool</div>
   </div>
 
   <!-- Stall Nav -->
