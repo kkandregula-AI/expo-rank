@@ -716,8 +716,52 @@ body::before {
 .fab.visible { display:flex; }
 
 /* ════════════════════════
-   SAVE STATUS BADGE
+   CLEAR DATA BUTTON
 ════════════════════════ */
+.clear-data-btn {
+  width:100%; padding:13px;
+  background:transparent; color:rgba(239,68,68,0.7);
+  border:1px solid rgba(239,68,68,0.25); border-radius:var(--r-lg);
+  font-family:'Nunito',sans-serif; font-size:13px; font-weight:700;
+  cursor:pointer; transition:all .2s; touch-action:manipulation;
+  margin-bottom:16px; letter-spacing:.02em;
+}
+.clear-data-btn:active { background:rgba(239,68,68,0.08); border-color:rgba(239,68,68,0.5); }
+
+/* ════════════════════════
+   CONFIRMATION MODAL
+════════════════════════ */
+.modal-overlay {
+  position:fixed; inset:0; z-index:600;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(8px);
+  display:none; align-items:flex-end; justify-content:center;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.modal-overlay.show { display:flex; }
+.modal-sheet {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:28px 28px 0 0; padding:28px 22px 32px;
+  width:100%; max-width:600px;
+  animation:sheet-up .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes sheet-up { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.modal-icon { font-size:40px; text-align:center; margin-bottom:12px; }
+.modal-title { font-size:18px; font-weight:900; text-align:center; color:var(--text); margin-bottom:8px; }
+.modal-body { font-size:13px; color:var(--muted); text-align:center; line-height:1.6; margin-bottom:24px; }
+.modal-btns { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.modal-cancel {
+  padding:15px; border-radius:var(--r-lg);
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text-2); font-family:'Nunito',sans-serif;
+  font-size:15px; font-weight:800; cursor:pointer; touch-action:manipulation;
+}
+.modal-confirm {
+  padding:15px; border-radius:var(--r-lg);
+  background:rgba(239,68,68,0.15); border:1.5px solid rgba(239,68,68,0.4);
+  color:#fca5a5; font-family:'Nunito',sans-serif;
+  font-size:15px; font-weight:800; cursor:pointer; touch-action:manipulation;
+}
+.modal-confirm:active { background:rgba(239,68,68,0.25); }
 .save-badge {
   display:inline-flex; align-items:center; gap:5px;
   font-family:'JetBrains Mono',monospace; font-size:10px;
@@ -943,6 +987,9 @@ body::before {
     <button class="act-btn" onclick="downloadPDF()"><span class="act-icon">⬇️</span>Download PDF</button>
     <button class="act-btn primary-act" onclick="printReport()"><span class="act-icon">🖨️</span>Print PDF</button>
   </div>
+  <button class="clear-data-btn" onclick="confirmClearData()">
+    🗑️ Clear All Session Data
+  </button>
 
   <div id="podiumSection"></div>
   <div id="leaderboardSection"></div>
@@ -981,6 +1028,56 @@ let stalls = [];
 let currentIndex = 0;
 let notesExpanded = false;
 let saveTimer = null;
+// Dirty tracking — snapshot of data when buttons were last completed
+let feedbackSnapshot = null;
+let aiScoreSnapshot = null;
+
+/* ═══ Snapshot helpers ═══ */
+function getFormSnapshot() {
+  return JSON.stringify({
+    name: document.getElementById('projName').value.trim(),
+    team: document.getElementById('teamName').value.trim(),
+    domain: document.getElementById('domain').value,
+    yearDept: document.getElementById('yearDept').value.trim(),
+    problem: document.getElementById('problem').value.trim(),
+    positives: document.getElementById('positives').value.trim(),
+    improvements: document.getElementById('improvements').value.trim(),
+    suggestions: document.getElementById('suggestions').value.trim(),
+    scores: {...scores},
+    tone: currentTone
+  });
+}
+function markFeedbackDone() {
+  feedbackSnapshot = getFormSnapshot();
+  updateActionButtons();
+}
+function markAIScoreDone() {
+  aiScoreSnapshot = getFormSnapshot();
+  updateActionButtons();
+}
+function resetSnapshots() {
+  feedbackSnapshot = null;
+  aiScoreSnapshot = null;
+  updateActionButtons();
+}
+function updateActionButtons() {
+  const snap = getFormSnapshot();
+  const genBtn = document.getElementById('genBtn');
+  const reevalBtn = document.getElementById('reevalBtn');
+  if (!genBtn || !reevalBtn) return;
+
+  // Feedback button: disabled only if feedback exists AND nothing changed since
+  const feedbackDone = feedbackSnapshot && snap === feedbackSnapshot;
+  genBtn.disabled = feedbackDone;
+  genBtn.style.opacity = feedbackDone ? '0.45' : '';
+  genBtn.title = feedbackDone ? 'Change ratings or form data to regenerate' : '';
+
+  // AI Score button: disabled only if AI score exists AND nothing changed since
+  const aiDone = aiScoreSnapshot && snap === aiScoreSnapshot;
+  reevalBtn.disabled = aiDone;
+  reevalBtn.style.opacity = aiDone ? '0.45' : '';
+  reevalBtn.title = aiDone ? 'Change ratings or form data to re-score' : '';
+}
 
 /* ═══ Toast ═══ */
 let toastTimer = null;
@@ -1031,7 +1128,7 @@ function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persistSave, 800);
 }
-function onFormChange() { scheduleSave(); updateStepProgress(); }
+function onFormChange() { scheduleSave(); updateStepProgress(); updateActionButtons(); }
 
 /* ═══ Step Progress ═══ */
 function updateStepProgress() {
@@ -1109,6 +1206,7 @@ function setScore(id, val) {
   updateMeter();
   updateStepProgress();
   scheduleSave();
+  updateActionButtons();
 }
 
 function updateMeter() {
@@ -1130,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     btn.addEventListener('click',()=>{
       document.querySelectorAll('.tone-pill').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active'); currentTone = btn.dataset.tone;
-      scheduleSave();
+      scheduleSave(); updateActionButtons();
     });
   });
   if (stalls.filter(Boolean).length > 0) {
@@ -1168,11 +1266,12 @@ async function generateFeedback() {
     mentor:'like a wise mentor — personal, thoughtful, long-term perspective',
     investor:'from an investor/startup advisor — evaluate viability, market potential, risk',
   };
-  const prompt=`You are a judge at a college engineering expo. Write a personalized, memorable feedback message. Be ${toneGuide[currentTone]}.
-PROJECT: ${name}\nTEAM: ${team||'Unknown'}\nDOMAIN: ${domain||'Engineering'}\nYEAR/DEPT: ${yd||'Not specified'}\nPROBLEM: ${prob||'Not specified'}
-SCORES:\n${scoreLines}\nOVERALL: ${avg?avg+'/5':'Not fully scored'}
-NOTES:\n- Impressed by: ${pos||'Not specified'}\n- Needs work: ${impr||'Not specified'}\n- Suggestions: ${sug||'Not specified'}
-Write 3–4 paragraphs. Address team directly. Reference their specific project. End with an inspiring closing line. No subject line.`;
+  const prompt=`You are a judge at a college engineering expo. Write CRISP, punchy feedback — maximum 5 bullet points, each 1 sentence. Be ${toneGuide[currentTone]}.
+PROJECT: ${name} | TEAM: ${team||'Unknown'} | DOMAIN: ${domain||'Engineering'} | YEAR: ${yd||'N/A'}
+PROBLEM: ${prob||'Not specified'}
+SCORES: ${scoreLines} | OVERALL: ${avg?avg+'/5':'Not scored'}
+NOTES: Strengths: ${pos||'—'} | Gaps: ${impr||'—'} | Suggestions: ${sug||'—'}
+Format: Start with one punchy opening sentence addressing the team by name. Then 3–4 bullet points (use • symbol) covering key strengths, critical gaps, and one actionable suggestion. End with one sharp closing line. No paragraphs. No headers. Total length: under 120 words.`;
 
   const btn=document.getElementById('genBtn');
   btn.classList.add('loading');
@@ -1192,6 +1291,7 @@ Write 3–4 paragraphs. Address team directly. Reference their specific project.
     document.getElementById('outputCard').scrollIntoView({behavior:'smooth',block:'nearest'});
     saveToLog(name,team,avg,text);
     showToast(`Stall #${currentIndex+1} feedback saved ✓`);
+    markFeedbackDone();
   } catch(err){ showError('Could not generate feedback. ('+err.message+')'); }
   finally { btn.classList.remove('loading'); }
 }
@@ -1303,6 +1403,8 @@ Respond ONLY with a valid JSON object. No preamble, no explanation, no markdown 
       document.getElementById('advice-col-'+cr.id).style.flex = '0 0 100%';
     });
     showToast('AI scoring complete', 'info');
+    if (stalls[currentIndex]) { stalls[currentIndex].aiScored = true; persistSave(); }
+    markAIScoreDone();
   } catch(err) { showError('Re-evaluation failed: '+err.message); }
   finally { btn.classList.remove('loading'); }
 }
@@ -1343,6 +1445,7 @@ function showError(msg){
 
 /* ═══ Stall Management ═══ */
 function saveToLog(name,team,avg,feedback){
+  const existing = stalls[currentIndex] || {};
   stalls[currentIndex]={
     num:currentIndex+1,name,team,avg,feedback,scores:{...scores},tone:currentTone,
     domain:document.getElementById('domain').value,
@@ -1351,6 +1454,7 @@ function saveToLog(name,team,avg,feedback){
     suggestions:document.getElementById('suggestions').value,
     problem:document.getElementById('problem').value,
     yearDept:document.getElementById('yearDept').value,
+    aiScored: existing.aiScored || false,
   };
   renderLog(); updateStallDisplay(); renderChipStrip(); persistSave();
 }
@@ -1397,7 +1501,11 @@ function loadStall(i){
       (s.avg?`<div class="chip">Overall: <span>${s.avg}/5</span></div>`:'');
   } else {document.getElementById('outputCard').classList.remove('visible');}
   updateStallDisplay(); renderChipStrip(); updateStepProgress(); setSaveBadge(true);
-  window.scrollTo({top:0,behavior:'smooth'});
+  // Restore button disable state for already-completed stalls
+  resetSnapshots();
+  if (s.feedback) { feedbackSnapshot = getFormSnapshot(); }
+  if (s.aiScored) { aiScoreSnapshot = getFormSnapshot(); }
+  updateActionButtons();
 }
 
 function newStall(){
@@ -1411,6 +1519,7 @@ function newStall(){
   document.getElementById('notesNudge').classList.remove('hidden');
   document.getElementById('notesFields').style.display = 'none';
   buildCriteria(); updateStallDisplay(); renderChipStrip(); updateStepProgress(); setSaveBadge(false);
+  resetSnapshots();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -1700,7 +1809,52 @@ function printReport(){
   w.document.write(html); w.document.close();
   w.onload=()=>{w.focus();w.print();};
 }
+
+/* ═══ Clear Session Data ═══ */
+function confirmClearData() {
+  const count = stalls.filter(Boolean).length;
+  if (!count) { showToast('No session data to clear', 'info'); return; }
+  document.getElementById('modalStallCount').textContent = count;
+  document.getElementById('clearModal').classList.add('show');
+}
+function closeClearModal() {
+  document.getElementById('clearModal').classList.remove('show');
+}
+function executeClearData() {
+  try {
+    localStorage.removeItem('expojudge_stalls');
+    localStorage.removeItem('expojudge_meta');
+  } catch(e) {}
+  stalls = [];
+  currentIndex = 0;
+  notesExpanded = false;
+  closeClearModal();
+  // Reset UI
+  newStall();
+  renderChipStrip();
+  document.getElementById('podiumSection').innerHTML = '';
+  document.getElementById('leaderboardSection').innerHTML = '';
+  document.getElementById('winnerReportSection').innerHTML = '';
+  switchView('judge');
+  showToast('All session data cleared', 'info', 3000);
+}
 </script>
 -e 
+<!-- Confirmation Modal -->
+<div class="modal-overlay" id="clearModal">
+  <div class="modal-sheet">
+    <div class="modal-icon">🗑️</div>
+    <div class="modal-title">Clear All Session Data?</div>
+    <div class="modal-body">
+      This will permanently delete all <strong id="modalStallCount">0</strong> judged stalls, scores, and feedback from this device.<br><br>
+      Make sure you've already <strong>downloaded or printed your report</strong> before clearing.
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeClearModal()">Cancel</button>
+      <button class="modal-confirm" onclick="executeClearData()">Yes, Clear All</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
