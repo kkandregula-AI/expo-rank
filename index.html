@@ -786,7 +786,7 @@ Write 3–4 paragraphs. Address team directly. Reference their specific project.
   const btn=document.getElementById('genBtn');
   btn.classList.add('loading');
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
+    const res=await fetch('https://delicate-pond-97e5-expojudge.kkandregula.workers.dev',{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
     });
@@ -944,7 +944,7 @@ async function generateWinnerReport(){
   const summary=sorted.map((s,i)=>`${i+1}. ${s.name} by ${s.team||'Unknown'} (${s.domain||'Engineering'}) — Score: ${s.avg||'N/A'}/5\n   Strengths: ${s.positives||'None'}\n   Improvements: ${s.improvements||'None'}`).join('\n\n');
   const prompt=`You are chief judge of a college engineering expo. Write an exciting official results announcement.\nInclude: exciting opening, top 3 winners with reasons, honorable mentions, motivating close for all.\n\nProjects (ranked):\n${summary}\n\nTotal: ${sorted.length} projects`;
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    const res=await fetch('https://delicate-pond-97e5-expojudge.kkandregula.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:prompt}]})});
     if(!res.ok) throw new Error('API '+res.status);
     const data=await res.json();
