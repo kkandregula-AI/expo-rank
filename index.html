@@ -902,8 +902,8 @@ body::before {
       <span class="spinner">⏳ Generating...</span>
     </button>
     <button class="reeval-btn" id="reevalBtn" onclick="aiReEvaluate()">
-      <span class="btn-text">🔍 Re-evaluate</span>
-      <span class="spinner">⏳ Analysing...</span>
+      <span class="btn-text">🤖 Score by AI</span>
+      <span class="spinner">⏳ Scoring...</span>
     </button>
   </div>
 
@@ -1229,14 +1229,14 @@ HUMAN JUDGE NOTES:
 - Suggestions: ${sug||'Not specified'}
 HUMAN JUDGE RATINGS: ${scoreLines}
 
-Respond ONLY with a JSON object, no markdown, no explanation outside JSON:
+Respond ONLY with a valid JSON object. No preamble, no explanation, no markdown fences. Start your response with { and end with }:
 {
   "ratings": {
-    "innovation": { "score": <1-5>, "advice": "<1-2 sentence advice if your score differs from human, or confirmation if you agree>" },
-    "execution": { "score": <1-5>, "advice": "..." },
-    "presentation": { "score": <1-5>, "advice": "..." },
-    "impact": { "score": <1-5>, "advice": "..." },
-    "technical": { "score": <1-5>, "advice": "..." }
+    "innovation": { "score": <1-5 integer>, "advice": "<1 sentence>" },
+    "execution":  { "score": <1-5 integer>, "advice": "<1 sentence>" },
+    "presentation":{ "score": <1-5 integer>, "advice": "<1 sentence>" },
+    "impact":     { "score": <1-5 integer>, "advice": "<1 sentence>" },
+    "technical":  { "score": <1-5 integer>, "advice": "<1 sentence>" }
   }
 }`;
 
@@ -1247,8 +1247,23 @@ Respond ONLY with a JSON object, no markdown, no explanation outside JSON:
     });
     if (!res.ok) throw new Error('API '+res.status);
     const data = await res.json();
-    const raw = data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    const parsed = JSON.parse(raw);
+    const rawText = data.content.map(b=>b.text||'').join('');
+
+    // Robust JSON extraction — finds the first { ... } block even if AI adds preamble/postamble
+    let parsed;
+    try {
+      // Strip markdown fences first
+      let clean = rawText.replace(/```json\s*/gi,'').replace(/```/g,'').trim();
+      // Find outermost { } block
+      const start = clean.indexOf('{');
+      const end = clean.lastIndexOf('}');
+      if (start === -1 || end === -1) throw new Error('No JSON object found');
+      clean = clean.slice(start, end + 1);
+      parsed = JSON.parse(clean);
+    } catch(parseErr) {
+      console.error('JSON parse failed:', parseErr, rawText);
+      throw new Error('AI returned unexpected format. Please try again.');
+    }
     aiScores = {};
 
     CRITERIA.forEach(cr => {
@@ -1287,7 +1302,7 @@ Respond ONLY with a JSON object, no markdown, no explanation outside JSON:
       row.style.flexWrap = 'wrap';
       document.getElementById('advice-col-'+cr.id).style.flex = '0 0 100%';
     });
-    showToast('AI re-evaluation complete', 'info');
+    showToast('AI scoring complete', 'info');
   } catch(err) { showError('Re-evaluation failed: '+err.message); }
   finally { btn.classList.remove('loading'); }
 }
