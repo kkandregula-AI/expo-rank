@@ -973,18 +973,28 @@ Respond ONLY with a JSON object, no markdown, no explanation outside JSON:
 }
 
 function acceptAIScore(id, val) {
+  // 1. Update live scores{} and star UI
   setScore(id, val);
+
+  // 2. Update Accept button UI
   const btn = document.getElementById('accept-'+id);
   if (btn) { btn.textContent = '✓ Accepted'; btn.classList.add('accepted'); btn.disabled = true; }
-  // Update the "your rating" stars in the ai eval row
+
+  // 3. Update "Your Rating" stars in the AI eval row to reflect accepted value
   const row = document.getElementById('aieval-'+id);
   if (row) {
     const yourStars = row.querySelectorAll('.ai-stars')[0];
-    if (yourStars) {
-      yourStars.querySelectorAll('.ai-star').forEach((s,i) => s.classList.toggle('ai-lit', i<val));
-    }
+    if (yourStars) yourStars.querySelectorAll('.ai-star').forEach((s,i) => s.classList.toggle('ai-lit', i<val));
     const yourLabel = row.querySelector('.eval-side .ai-stars + div');
     if (yourLabel) yourLabel.textContent = val+'/5';
+  }
+
+  // 4. Persist updated scores + recalculated avg back into stalls[]
+  if (stalls[currentIndex]) {
+    stalls[currentIndex].scores[id] = val;
+    const vals = Object.values(stalls[currentIndex].scores).filter(v => v > 0);
+    stalls[currentIndex].avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : null;
+    renderLog();
   }
 }
 
