@@ -549,9 +549,200 @@ body::before {
 ::-webkit-scrollbar { width:4px; }
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:rgba(14,165,233,0.2); border-radius:99px; }
+
+/* ════════════════════════
+   TOAST NOTIFICATION
+════════════════════════ */
+.toast {
+  position:fixed; bottom:calc(var(--nav-h) + 14px); left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:rgba(7,24,40,0.96); backdrop-filter:blur(20px);
+  border:1px solid rgba(16,185,129,0.4); border-radius:99px;
+  padding:10px 20px; font-size:13px; font-weight:700;
+  color:var(--green-lt); white-space:nowrap; z-index:500;
+  opacity:0; transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events:none; box-shadow:0 4px 24px rgba(0,0,0,.4);
+  display:flex; align-items:center; gap:7px;
+}
+.toast.show {
+  opacity:1; transform:translateX(-50%) translateY(0);
+}
+.toast.error {
+  border-color:rgba(239,68,68,0.4); color:#fca5a5;
+}
+.toast.info {
+  border-color:rgba(14,165,233,0.4); color:var(--blue-lt);
+}
+
+/* ════════════════════════
+   STALL CHIP STRIP
+════════════════════════ */
+.chip-strip-wrap {
+  position:sticky; top:0; z-index:100;
+  background:rgba(3,14,26,0.92); backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:8px 14px; margin:0 -14px;
+  display:none;
+}
+.chip-strip-wrap.visible { display:block; }
+.chip-strip {
+  display:flex; gap:7px; overflow-x:auto; padding-bottom:2px;
+  scrollbar-width:none;
+}
+.chip-strip::-webkit-scrollbar { display:none; }
+.stall-chip {
+  flex-shrink:0; display:flex; align-items:center; gap:5px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:99px; padding:6px 12px;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
+  color:var(--muted); cursor:pointer; transition:all .18s;
+  touch-action:manipulation; min-height:34px; white-space:nowrap;
+}
+.stall-chip:active { transform:scale(.93); }
+.stall-chip.active {
+  background:rgba(14,165,233,0.12); border-color:var(--blue);
+  color:var(--blue-lt);
+}
+.stall-chip.scored {
+  border-color:rgba(16,185,129,0.3); color:var(--green-lt);
+}
+.stall-chip.active.scored {
+  background:rgba(16,185,129,0.12); border-color:var(--green-lt);
+}
+.chip-add {
+  flex-shrink:0; width:34px; height:34px; border-radius:99px;
+  background:var(--grad); border:none; color:#fff;
+  font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all .18s; touch-action:manipulation;
+  box-shadow:0 2px 10px rgba(14,165,233,.3);
+}
+.chip-add:active { transform:scale(.88); }
+
+/* ════════════════════════
+   ENLARGED STAR TARGETS
+════════════════════════ */
+.star {
+  font-size:30px; cursor:pointer; background:none; border:none;
+  color:rgba(255,255,255,0.1); padding:4px 3px;
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1), color .15s, filter .15s;
+  touch-action:manipulation; line-height:1; display:block;
+  min-width:44px; min-height:44px;
+  display:flex; align-items:center; justify-content:center;
+}
+.star.lit { color:var(--amber); filter:drop-shadow(0 0 6px rgba(245,158,11,.7)); }
+.star:active { transform:scale(1.45); }
+
+/* ════════════════════════
+   STEP PROGRESS BAR
+════════════════════════ */
+.step-progress {
+  display:flex; gap:6px; align-items:center;
+  padding:12px 0 6px; margin-bottom:4px;
+}
+.step-dot {
+  height:4px; flex:1; border-radius:99px;
+  background:var(--border); transition:background .35s;
+}
+.step-dot.done { background:var(--grad); }
+.step-dot.active { background:var(--blue); box-shadow:0 0 8px rgba(14,165,233,.5); }
+
+/* ════════════════════════
+   NOTES NUDGE
+════════════════════════ */
+.notes-nudge {
+  display:flex; align-items:center; gap:8px;
+  background:rgba(14,165,233,0.06); border:1px dashed rgba(14,165,233,0.2);
+  border-radius:var(--r-md); padding:10px 13px; margin-bottom:12px;
+  font-size:12px; color:var(--muted); cursor:pointer;
+  transition:all .18s;
+}
+.notes-nudge:hover { border-color:rgba(14,165,233,0.4); color:var(--text-2); }
+.notes-nudge.hidden { display:none; }
+
+/* ════════════════════════
+   DUAL ACTION BUTTONS
+════════════════════════ */
+.action-btns {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;
+}
+.gen-btn {
+  padding:17px;
+  background:var(--grad); color:#fff; border:none;
+  border-radius:var(--r-lg); font-family:'Nunito',sans-serif;
+  font-size:15px; font-weight:900; cursor:pointer;
+  box-shadow:0 6px 28px rgba(14,165,233,.38), 0 0 0 1px rgba(16,185,129,.2);
+  transition:all .22s; touch-action:manipulation; min-height:56px;
+  position:relative; overflow:hidden; letter-spacing:.02em;
+  width:100%;
+}
+.gen-btn::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.13),transparent); }
+.gen-btn:active { transform:scale(.97); box-shadow:0 2px 12px rgba(14,165,233,.25); }
+.gen-btn.loading { opacity:.65; pointer-events:none; }
+.gen-btn .spinner { display:none; }
+.gen-btn.loading .btn-text { display:none; }
+.gen-btn.loading .spinner { display:inline; }
+
+.reeval-btn {
+  padding:15px;
+  background:rgba(16,185,129,0.08); color:var(--green-lt);
+  border:1.5px solid rgba(16,185,129,.4);
+  border-radius:var(--r-lg); font-family:'Nunito',sans-serif;
+  font-size:15px; font-weight:900; cursor:pointer;
+  transition:all .22s; touch-action:manipulation; min-height:56px;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  letter-spacing:.02em; width:100%;
+  position:relative; overflow:hidden;
+}
+.reeval-btn:active { transform:scale(.97); background:rgba(16,185,129,.14); }
+.reeval-btn.loading { opacity:.65; pointer-events:none; }
+.reeval-btn .spinner { display:none; }
+.reeval-btn.loading .btn-text { display:none; }
+.reeval-btn.loading .spinner { display:inline; }
+
+/* ════════════════════════
+   FLOATING ADD BUTTON (Winners)
+════════════════════════ */
+.fab {
+  position:fixed; right:18px; bottom:calc(var(--nav-h) + 14px); z-index:150;
+  width:54px; height:54px; border-radius:99px;
+  background:var(--grad); border:none; color:#fff;
+  font-size:26px; cursor:pointer;
+  box-shadow:0 6px 24px rgba(14,165,233,.45), 0 0 0 1px rgba(16,185,129,.3);
+  display:none; align-items:center; justify-content:center;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  touch-action:manipulation;
+}
+.fab:active { transform:scale(.88); }
+.fab.visible { display:flex; }
+
+/* ════════════════════════
+   SAVE STATUS BADGE
+════════════════════════ */
+.save-badge {
+  display:inline-flex; align-items:center; gap:5px;
+  font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted); padding:4px 10px; border-radius:99px;
+  border:1px solid var(--border); background:transparent;
+  transition:all .3s;
+}
+.save-badge.saved {
+  color:var(--green-lt); border-color:rgba(16,185,129,.3);
+  background:rgba(16,185,129,.07);
+}
+.save-badge .save-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--muted); transition:background .3s;
+}
+.save-badge.saved .save-dot { background:var(--green-lt); box-shadow:0 0 5px var(--green); }
 </style>
 </head>
 <body>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Floating Add Button (Winners tab) -->
+<button class="fab" id="fab" onclick="newStallFromWinners()" title="Add new stall">＋</button>
 
 <!-- ══════════════════════════════
      JUDGE VIEW
@@ -597,9 +788,25 @@ body::before {
     <div class="page-subtitle">// engineering project evaluation &amp; feedback tool</div>
   </div>
 
+  <!-- Stall Chip Strip (sticky, appears after first stall) -->
+  <div class="chip-strip-wrap" id="chipStripWrap">
+    <div class="chip-strip" id="chipStrip"></div>
+  </div>
+
+  <!-- Step Progress -->
+  <div class="step-progress">
+    <div class="step-dot active" id="sp1"></div>
+    <div class="step-dot" id="sp2"></div>
+    <div class="step-dot" id="sp3"></div>
+    <div class="step-dot" id="sp4"></div>
+  </div>
+
   <!-- Stall Nav -->
   <div class="stall-bar">
-    <div class="stall-counter">STALL <span class="stall-num" id="stallNum">1</span> of <span id="totalStalls">0</span></div>
+    <div>
+      <div class="stall-counter">STALL <span class="stall-num" id="stallNum">1</span> of <span id="totalStalls">0</span></div>
+      <div class="save-badge" id="saveBadge"><span class="save-dot"></span><span id="saveLabel">unsaved</span></div>
+    </div>
     <div class="bar-btns">
       <button class="btn-pill" onclick="prevStall()">← Prev</button>
       <button class="btn-pill" onclick="nextStall()">Next →</button>
@@ -614,13 +821,13 @@ body::before {
       <div><div class="card-title">Project Info</div><div class="card-step">Step 01</div></div>
     </div>
     <div class="row-2">
-      <div class="field"><label>Project Name</label><input id="projName" type="text" placeholder="Smart Irrigation Bot"></div>
-      <div class="field"><label>Team Name</label><input id="teamName" type="text" placeholder="Circuit Breakers"></div>
+      <div class="field"><label>Project Name</label><input id="projName" type="text" placeholder="Smart Irrigation Bot" oninput="onFormChange()"></div>
+      <div class="field"><label>Team Name</label><input id="teamName" type="text" placeholder="Circuit Breakers" oninput="onFormChange()"></div>
     </div>
     <div class="row-2">
       <div class="field">
         <label>Domain</label>
-        <select id="domain">
+        <select id="domain" onchange="onFormChange()">
           <option value="">— Select —</option>
           <option>Robotics & Automation</option>
           <option>AI / Machine Learning</option>
@@ -634,9 +841,9 @@ body::before {
           <option>Other</option>
         </select>
       </div>
-      <div class="field"><label>Year / Dept</label><input id="yearDept" type="text" placeholder="3rd Year – ECE"></div>
+      <div class="field"><label>Year / Dept</label><input id="yearDept" type="text" placeholder="3rd Year – ECE" oninput="onFormChange()"></div>
     </div>
-    <div class="field"><label>Problem Statement</label><textarea id="problem" rows="2" placeholder="What problem are they solving?"></textarea></div>
+    <div class="field"><label>Problem Statement</label><textarea id="problem" rows="2" placeholder="What problem are they solving?" oninput="onFormChange()"></textarea></div>
   </div>
 
   <!-- 02 Scores -->
@@ -660,11 +867,17 @@ body::before {
   <div class="card">
     <div class="card-header">
       <div class="card-icon ci-teal">🔍</div>
-      <div><div class="card-title">Your Observations</div><div class="card-step">Step 03</div></div>
+      <div><div class="card-title">Your Observations</div><div class="card-step">Step 03 · optional but improves AI output</div></div>
     </div>
-    <div class="field"><label>✅ What impressed you?</label><textarea id="positives" rows="2" placeholder="Strengths, wow moments, cool features..."></textarea></div>
-    <div class="field"><label>🔧 What needs work?</label><textarea id="improvements" rows="2" placeholder="Gaps, risks, things to polish..."></textarea></div>
-    <div class="field"><label>💡 Suggestions / Questions</label><textarea id="suggestions" rows="2" placeholder="Extensions, real-world applications..."></textarea></div>
+    <div class="notes-nudge" id="notesNudge" onclick="expandNotes()">
+      <span>💡</span>
+      <span>Add observations for richer AI feedback — tap to expand</span>
+    </div>
+    <div id="notesFields" style="display:none">
+      <div class="field"><label>✅ What impressed you?</label><textarea id="positives" rows="2" placeholder="Strengths, wow moments, cool features..." oninput="onFormChange()"></textarea></div>
+      <div class="field"><label>🔧 What needs work?</label><textarea id="improvements" rows="2" placeholder="Gaps, risks, things to polish..." oninput="onFormChange()"></textarea></div>
+      <div class="field"><label>💡 Suggestions / Questions</label><textarea id="suggestions" rows="2" placeholder="Extensions, real-world applications..." oninput="onFormChange()"></textarea></div>
+    </div>
   </div>
 
   <!-- 04 Tone -->
@@ -683,14 +896,17 @@ body::before {
     </div>
   </div>
 
-  <button class="gen-btn" id="genBtn" onclick="generateFeedback()">
-    <span class="btn-text">⚡ Generate AI Feedback</span>
-    <span class="spinner">⏳ Generating...</span>
-  </button>
-  <button class="reeval-btn" id="reevalBtn" onclick="aiReEvaluate()">
-    <span class="btn-text">🔍 AI Re-evaluate My Ratings</span>
-    <span class="spinner">⏳ Analysing scores...</span>
-  </button>
+  <div class="action-btns">
+    <button class="gen-btn" id="genBtn" onclick="generateFeedback()">
+      <span class="btn-text">⚡ AI Feedback</span>
+      <span class="spinner">⏳ Generating...</span>
+    </button>
+    <button class="reeval-btn" id="reevalBtn" onclick="aiReEvaluate()">
+      <span class="btn-text">🔍 Re-evaluate</span>
+      <span class="spinner">⏳ Analysing...</span>
+    </button>
+  </div>
+
   <div class="error-box" id="errorMsg"></div>
 
   <div class="output-card" id="outputCard">
@@ -763,7 +979,103 @@ let aiScores = {};
 let currentTone = 'encouraging';
 let stalls = [];
 let currentIndex = 0;
+let notesExpanded = false;
+let saveTimer = null;
 
+/* ═══ Toast ═══ */
+let toastTimer = null;
+function showToast(msg, type='success', duration=2400) {
+  const t = document.getElementById('toast');
+  const icons = { success:'✓', error:'⚠', info:'ℹ' };
+  t.textContent = (icons[type]||'') + ' ' + msg;
+  t.className = 'toast show' + (type!=='success' ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+/* ═══ localStorage auto-save ═══ */
+function persistSave() {
+  try {
+    localStorage.setItem('expojudge_stalls', JSON.stringify(stalls));
+    localStorage.setItem('expojudge_meta', JSON.stringify({ currentIndex, currentTone, notesExpanded }));
+    setSaveBadge(true);
+  } catch(e) {}
+}
+function persistLoad() {
+  try {
+    const raw = localStorage.getItem('expojudge_stalls');
+    const meta = localStorage.getItem('expojudge_meta');
+    if (raw) {
+      stalls = JSON.parse(raw);
+      if (meta) {
+        const m = JSON.parse(meta);
+        currentIndex = Math.min(m.currentIndex||0, Math.max(stalls.length-1,0));
+        currentTone = m.currentTone || 'encouraging';
+        notesExpanded = m.notesExpanded || false;
+      }
+      if (stalls.length) {
+        showToast(`Restored ${stalls.filter(Boolean).length} stall(s) from last session`, 'info', 3000);
+      }
+    }
+  } catch(e) {}
+}
+function setSaveBadge(saved) {
+  const b = document.getElementById('saveBadge');
+  const l = document.getElementById('saveLabel');
+  if (!b||!l) return;
+  b.classList.toggle('saved', saved);
+  l.textContent = saved ? 'auto-saved' : 'unsaved';
+}
+function scheduleSave() {
+  setSaveBadge(false);
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistSave, 800);
+}
+function onFormChange() { scheduleSave(); updateStepProgress(); }
+
+/* ═══ Step Progress ═══ */
+function updateStepProgress() {
+  const hasInfo = document.getElementById('projName').value.trim().length > 0;
+  const hasScore = Object.values(scores).some(v=>v>0);
+  const hasNotes = notesExpanded && (
+    document.getElementById('positives').value.trim() ||
+    document.getElementById('improvements').value.trim()
+  );
+  const steps = [hasInfo, hasScore, hasNotes, false];
+  steps.forEach((done, i) => {
+    const el = document.getElementById('sp'+(i+1));
+    if (!el) return;
+    el.className = 'step-dot' + (done ? ' done' : (i===steps.filter(Boolean).length ? ' active' : ''));
+  });
+}
+
+/* ═══ Notes nudge ═══ */
+function expandNotes() {
+  notesExpanded = true;
+  document.getElementById('notesNudge').classList.add('hidden');
+  document.getElementById('notesFields').style.display = 'block';
+  updateStepProgress();
+}
+
+/* ═══ Chip Strip ═══ */
+function renderChipStrip() {
+  const wrap = document.getElementById('chipStripWrap');
+  const strip = document.getElementById('chipStrip');
+  const valid = stalls.filter(Boolean);
+  if (valid.length === 0) { wrap.classList.remove('visible'); return; }
+  wrap.classList.add('visible');
+  strip.innerHTML = valid.map(s => {
+    const i = stalls.indexOf(s);
+    const isActive = i === currentIndex;
+    const hasScore = s.avg != null;
+    return `<div class="stall-chip ${isActive?'active':''} ${hasScore?'scored':''}" onclick="loadStall(${i})">
+      #${s.num} ${s.name ? s.name.slice(0,10)+(s.name.length>10?'…':'') : 'Unnamed'}
+      ${hasScore?`<span style="opacity:.7">${s.avg}★</span>`:''}
+    </div>`;
+  }).join('') + `<button class="chip-add" onclick="newStall()" title="New stall">＋</button>`;
+}
+
+/* ═══ Build Criteria ═══ */
 function buildCriteria() {
   aiScores = {};
   const c = document.getElementById('criteriaList');
@@ -795,6 +1107,8 @@ function setScore(id, val) {
   document.getElementById(`sc-${id}`).textContent = labels[val];
   document.getElementById('crit-'+id).classList.toggle('rated', val>0);
   updateMeter();
+  updateStepProgress();
+  scheduleSave();
 }
 
 function updateMeter() {
@@ -810,14 +1124,24 @@ function getAvg() {
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
+  persistLoad();
   buildCriteria();
   document.querySelectorAll('.tone-pill').forEach(btn=>{
     btn.addEventListener('click',()=>{
       document.querySelectorAll('.tone-pill').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active'); currentTone = btn.dataset.tone;
+      scheduleSave();
     });
   });
-  updateStallDisplay();
+  if (stalls.filter(Boolean).length > 0) {
+    loadStall(currentIndex);
+  } else {
+    updateStallDisplay();
+    renderChipStrip();
+  }
+  // Restore notes state
+  if (notesExpanded) expandNotes();
+  updateStepProgress();
 });
 
 /* ═══ Generate Feedback ═══ */
@@ -867,9 +1191,11 @@ Write 3–4 paragraphs. Address team directly. Reference their specific project.
     document.getElementById('outputCard').classList.add('visible');
     document.getElementById('outputCard').scrollIntoView({behavior:'smooth',block:'nearest'});
     saveToLog(name,team,avg,text);
+    showToast(`Stall #${currentIndex+1} feedback saved ✓`);
   } catch(err){ showError('Could not generate feedback. ('+err.message+')'); }
   finally { btn.classList.remove('loading'); }
 }
+
 /* ═══ AI Re-Evaluation ═══ */
 async function aiReEvaluate() {
   const name = document.getElementById('projName').value.trim();
@@ -888,12 +1214,7 @@ async function aiReEvaluate() {
 
   const btn = document.getElementById('reevalBtn');
   btn.classList.add('loading');
-
-  // Hide existing AI eval rows while loading
-  CRITERIA.forEach(cr => {
-    const row = document.getElementById('aieval-'+cr.id);
-    row.style.display = 'none';
-  });
+  CRITERIA.forEach(cr => { document.getElementById('aieval-'+cr.id).style.display = 'none'; });
 
   const scoreLines = CRITERIA.map(c => `${c.label}: ${scores[c.id]||0}/5`).join(', ');
   const prompt = `You are an expert engineering expo judge. A human judge has rated this project. Provide your OWN independent rating for each category AND brief advice.
@@ -963,24 +1284,18 @@ Respond ONLY with a JSON object, no markdown, no explanation outside JSON:
           <div class="ai-advice ${match?'match':''}">${match ? '✓ '+r.advice : gapText+' — '+r.advice}</div>
           ${!match ? `<button class="accept-btn" id="accept-${cr.id}" onclick="acceptAIScore('${cr.id}',${aiScore})">Accept AI rating (${aiScore}★)</button>` : ''}
         </div>`;
-      // Fix layout — advice col should be full width below
       row.style.flexWrap = 'wrap';
       document.getElementById('advice-col-'+cr.id).style.flex = '0 0 100%';
     });
-
+    showToast('AI re-evaluation complete', 'info');
   } catch(err) { showError('Re-evaluation failed: '+err.message); }
   finally { btn.classList.remove('loading'); }
 }
 
 function acceptAIScore(id, val) {
-  // 1. Update live scores{} and star UI
   setScore(id, val);
-
-  // 2. Update Accept button UI
   const btn = document.getElementById('accept-'+id);
   if (btn) { btn.textContent = '✓ Accepted'; btn.classList.add('accepted'); btn.disabled = true; }
-
-  // 3. Update "Your Rating" stars in the AI eval row to reflect accepted value
   const row = document.getElementById('aieval-'+id);
   if (row) {
     const yourStars = row.querySelectorAll('.ai-stars')[0];
@@ -988,23 +1303,28 @@ function acceptAIScore(id, val) {
     const yourLabel = row.querySelector('.eval-side .ai-stars + div');
     if (yourLabel) yourLabel.textContent = val+'/5';
   }
-
-  // 4. Persist updated scores + recalculated avg back into stalls[]
   if (stalls[currentIndex]) {
     stalls[currentIndex].scores[id] = val;
     const vals = Object.values(stalls[currentIndex].scores).filter(v => v > 0);
     stalls[currentIndex].avg = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : null;
     renderLog();
+    renderChipStrip();
+    persistSave();
   }
+  showToast(`${CRITERIA.find(c=>c.id===id)?.label} updated to ${val}★`);
 }
 
 function copyFeedback(){
   navigator.clipboard.writeText(document.getElementById('feedbackText').textContent).then(()=>{
-    const b=document.querySelector('.copy-btn'); b.textContent='Copied ✓';
-    setTimeout(()=>b.textContent='Copy',2000);
+    showToast('Feedback copied to clipboard');
   });
 }
-function showError(msg){ const el=document.getElementById('errorMsg'); el.textContent='⚠ '+msg; el.classList.add('visible'); }
+function showError(msg){
+  const el=document.getElementById('errorMsg');
+  el.textContent='⚠ '+msg;
+  el.classList.add('visible');
+  showToast(msg, 'error');
+}
 
 /* ═══ Stall Management ═══ */
 function saveToLog(name,team,avg,feedback){
@@ -1017,8 +1337,9 @@ function saveToLog(name,team,avg,feedback){
     problem:document.getElementById('problem').value,
     yearDept:document.getElementById('yearDept').value,
   };
-  renderLog(); updateStallDisplay();
+  renderLog(); updateStallDisplay(); renderChipStrip(); persistSave();
 }
+
 function renderLog(){
   const log=document.getElementById('stallLog'),valid=stalls.filter(Boolean);
   if(!valid.length){log.innerHTML='<div class="empty-state"><div class="e-icon">🔭</div><p>No stalls yet — start judging!</p></div>';return;}
@@ -1032,6 +1353,7 @@ function renderLog(){
       <div class="log-score-badge">${s.avg?s.avg+'★':'—'}</div>
     </div>`).join('');
 }
+
 function loadStall(i){
   currentIndex=i; const s=stalls[i]; if(!s)return;
   document.getElementById('projName').value=s.name||'';
@@ -1042,6 +1364,12 @@ function loadStall(i){
   document.getElementById('positives').value=s.positives||'';
   document.getElementById('improvements').value=s.improvements||'';
   document.getElementById('suggestions').value=s.suggestions||'';
+  // Restore notes state if any notes exist
+  if (s.positives||s.improvements||s.suggestions) {
+    notesExpanded = true;
+    document.getElementById('notesNudge').classList.add('hidden');
+    document.getElementById('notesFields').style.display='block';
+  }
   buildCriteria();
   CRITERIA.forEach(c=>{if(s.scores[c.id])setScore(c.id,s.scores[c.id]);});
   currentTone=s.tone;
@@ -1053,16 +1381,29 @@ function loadStall(i){
       CRITERIA.map(c=>`<div class="chip">${c.label}: <span>${s.scores[c.id]||'—'}/5</span></div>`).join('')+
       (s.avg?`<div class="chip">Overall: <span>${s.avg}/5</span></div>`:'');
   } else {document.getElementById('outputCard').classList.remove('visible');}
-  updateStallDisplay(); window.scrollTo({top:0,behavior:'smooth'});
+  updateStallDisplay(); renderChipStrip(); updateStepProgress(); setSaveBadge(true);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+
 function newStall(){
   currentIndex=stalls.length;
   ['projName','teamName','yearDept','problem','positives','improvements','suggestions'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('domain').value='';
-  buildCriteria(); document.getElementById('outputCard').classList.remove('visible');
+  document.getElementById('outputCard').classList.remove('visible');
   document.getElementById('errorMsg').classList.remove('visible');
-  updateStallDisplay(); window.scrollTo({top:0,behavior:'smooth'});
+  // Reset notes nudge
+  notesExpanded = false;
+  document.getElementById('notesNudge').classList.remove('hidden');
+  document.getElementById('notesFields').style.display = 'none';
+  buildCriteria(); updateStallDisplay(); renderChipStrip(); updateStepProgress(); setSaveBadge(false);
+  window.scrollTo({top:0,behavior:'smooth'});
 }
+
+function newStallFromWinners(){
+  switchView('judge');
+  setTimeout(newStall, 100);
+}
+
 function prevStall(){if(currentIndex>0)loadStall(currentIndex-1);}
 function nextStall(){if(currentIndex<stalls.length-1)loadStall(currentIndex+1);else newStall();}
 function updateStallDisplay(){
@@ -1074,12 +1415,15 @@ function updateStallDisplay(){
 function switchView(view){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const fab = document.getElementById('fab');
   if(view==='judge'){
     document.getElementById('judgeView').classList.add('active');
     document.getElementById('navJudge').classList.add('active');
+    fab.classList.remove('visible');
   } else {
     document.getElementById('winnerView').classList.add('active');
     document.getElementById('navWinner').classList.add('active');
+    fab.classList.add('visible');
     renderWinnerPage();
   }
   window.scrollTo({top:0,behavior:'smooth'});
@@ -1133,7 +1477,7 @@ function loadStallAndSwitch(i){loadStall(i);switchView('judge');}
 
 async function generateWinnerReport(){
   const sorted=getSorted();
-  if(!sorted.length){alert('No stalls judged yet!');return;}
+  if(!sorted.length){showToast('No stalls judged yet!','error');return;}
   const sec=document.getElementById('winnerReportSection');
   sec.innerHTML=`<div class="report-card" style="text-align:center;padding:32px"><span style="font-size:34px">🤖</span><br><br><span style="color:var(--muted);font-size:13px;font-family:'JetBrains Mono',monospace">Generating AI winner report...</span></div>`;
   const summary=sorted.map((s,i)=>`${i+1}. ${s.name} by ${s.team||'Unknown'} (${s.domain||'Engineering'}) — Score: ${s.avg||'N/A'}/5\n   Strengths: ${s.positives||'None'}\n   Improvements: ${s.improvements||'None'}`).join('\n\n');
@@ -1148,45 +1492,41 @@ async function generateWinnerReport(){
       <div class="report-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
           <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--green-lt)">✦ AI EXPO REPORT</span>
-          <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('aiReport').textContent).then(()=>{this.textContent='Copied ✓';setTimeout(()=>this.textContent='Copy',2000)})">Copy</button>
+          <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('aiReport').textContent).then(()=>{showToast('Report copied')})">Copy</button>
         </div>
         <div id="aiReport" class="report-text">${text}</div>
       </div>`;
+    showToast('AI report generated ✓');
   }catch(err){sec.innerHTML=`<div class="error-box visible">Failed: ${err.message}</div>`;}
 }
 
 /* ═══ PDF Download ═══ */
 async function downloadPDF(){
   const sorted=getSorted();
-  if(!sorted.length){alert('No stalls judged yet!');return;}
+  if(!sorted.length){showToast('No stalls judged yet!','error');return;}
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,M=18; let y=M;
   function np(need=20){if(y+need>278){doc.addPage();y=M;}}
   function hl(yy,c=[14,165,233]){doc.setDrawColor(...c);doc.setLineWidth(.3);doc.line(M,yy,W-M,yy);}
 
-  // Cover
   doc.setFillColor(3,14,26); doc.rect(0,0,W,297,'F');
   for(let gx=0;gx<W;gx+=9){doc.setDrawColor(14,165,233,12);doc.setLineWidth(.07);doc.line(gx,0,gx,297);}
   for(let gy=0;gy<297;gy+=9){doc.setDrawColor(14,165,233,12);doc.setLineWidth(.07);doc.line(0,gy,W,gy);}
-  // Hex outline
   const hx=W/2, hy=100, hr=55;
   const hp=[];
   for(let a=0;a<6;a++){const ang=(a*60-90)*Math.PI/180; hp.push([hx+hr*Math.cos(ang),hy+hr*Math.sin(ang)]);}
   doc.setDrawColor(14,165,233); doc.setLineWidth(0.6);
   for(let i=0;i<6;i++){const n=(i+1)%6; doc.line(hp[i][0],hp[i][1],hp[n][0],hp[n][1]);}
-  // Lightning bolt
   doc.setFillColor(14,165,233);
   doc.triangle(hx+8,hy-28, hx-10,hy+4, hx+4,hy+4,'F');
   doc.triangle(hx+10,hy-4, hx-8,hy+28, hx-4,hy+28,'F');
-
   doc.setFont('helvetica','bold'); doc.setFontSize(36); doc.setTextColor(14,165,233);
   doc.text('Expo',W/2,130,{align:'center'});
   doc.setTextColor(16,185,129); doc.text('Judge',W/2,148,{align:'center'});
   doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(46,106,138);
   doc.text('ENGINEERING EXPO — OFFICIAL RESULTS REPORT',W/2,160,{align:'center'});
   doc.text(new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'}),W/2,168,{align:'center'});
-
   if(sorted[0]){
     doc.setDrawColor(245,158,11); doc.setLineWidth(.5); doc.roundedRect(M+20,180,W-M*2-40,40,4,4,'S');
     doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(245,158,11); doc.text('🏆  EXPO WINNER',W/2,192,{align:'center'});
@@ -1195,7 +1535,6 @@ async function downloadPDF(){
   }
   doc.setFontSize(9); doc.setTextColor(25,50,70); doc.text(`${sorted.length} PROJECTS EVALUATED`,W/2,230,{align:'center'});
 
-  // Leaderboard page
   doc.addPage(); doc.setFillColor(3,14,26); doc.rect(0,0,W,297,'F'); y=M;
   doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.setTextColor(14,165,233); doc.text('FULL LEADERBOARD',M,y); y+=9;
   hl(y); y+=8;
@@ -1217,7 +1556,6 @@ async function downloadPDF(){
     y+=22;
   });
 
-  // Individual project pages
   sorted.forEach((s,idx)=>{
     doc.addPage(); doc.setFillColor(3,14,26); doc.rect(0,0,W,297,'F'); y=M;
     const rc=idx===0?[245,158,11]:idx===1?[148,163,184]:idx===2?[217,119,6]:[14,165,233];
@@ -1261,12 +1599,13 @@ async function downloadPDF(){
     doc.splitTextToSize(rEl.textContent,W-M*2).forEach(l=>{np(5);doc.text(l,M,y);y+=4.5;});
   }
   doc.save(`ExpoJudge_${new Date().toISOString().slice(0,10)}.pdf`);
+  showToast('PDF downloaded ✓');
 }
 
 /* ═══ Print Report ═══ */
 function printReport(){
   const sorted=getSorted();
-  if(!sorted.length){alert('No stalls judged yet!');return;}
+  if(!sorted.length){showToast('No stalls judged yet!','error');return;}
   const aiReport=document.getElementById('aiReport');
   const top=sorted[0];
   let html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ExpoJudge Results</title>
@@ -1347,5 +1686,6 @@ function printReport(){
   w.onload=()=>{w.focus();w.print();};
 }
 </script>
+-e 
 </body>
 </html>
