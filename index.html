@@ -987,6 +987,11 @@ body::before {
     <button class="act-btn" onclick="downloadPDF()"><span class="act-icon">⬇️</span>Download PDF</button>
     <button class="act-btn primary-act" onclick="printReport()"><span class="act-icon">🖨️</span>Print PDF</button>
   </div>
+  <div class="action-row" style="margin-top:8px">
+    <button class="act-btn" onclick="exportData()"><span class="act-icon">💾</span>Export Backup</button>
+    <button class="act-btn" onclick="document.getElementById('importFile').click()"><span class="act-icon">📂</span>Import Backup</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
   <button class="clear-data-btn" onclick="confirmClearData()">
     🗑️ Clear All Session Data
   </button>
@@ -1090,45 +1095,110 @@ function showToast(msg, type='success', duration=2400) {
   toastTimer = setTimeout(() => t.classList.remove('show'), duration);
 }
 
-/* ═══ localStorage auto-save ═══ */
+/* ═══════════════════════════════════════
+   STORAGE — iOS PWA Bulletproof
+   
+   Key iOS PWA facts:
+   - localStorage IS persistent across PWA launches (unlike sessionStorage)
+   - sessionStorage is CLEARED on every PWA launch — do NOT rely on it
+   - IndexedDB async writes are NOT guaranteed to complete before iOS kills app
+   - pagehide/beforeunload give ~zero async time on iOS
+   - SOLUTION: synchronous localStorage write on EVERY state change,
+     no debounce, immediately after each action
+═══════════════════════════════════════ */
+
+const LS_KEY = 'expojudge_v3';
+
+function getPayload() {
+  return JSON.stringify({
+    stalls,
+    meta: { currentIndex, currentTone, notesExpanded },
+    savedAt: Date.now()
+  });
+}
+
+// SYNCHRONOUS save — localStorage only, called immediately on every change
 function persistSave() {
   try {
-    localStorage.setItem('expojudge_stalls', JSON.stringify(stalls));
-    localStorage.setItem('expojudge_meta', JSON.stringify({ currentIndex, currentTone, notesExpanded }));
+    localStorage.setItem(LS_KEY, getPayload());
     setSaveBadge(true);
-  } catch(e) {}
+  } catch(e) {
+    // If localStorage is full, try clearing old keys first
+    try {
+      localStorage.removeItem('expojudge_stalls');
+      localStorage.removeItem('expojudge_meta');
+      localStorage.removeItem('expojudge_v2');
+      localStorage.setItem(LS_KEY, getPayload());
+      setSaveBadge(true);
+    } catch(e2) { setSaveBadge(false); }
+  }
 }
+
 function persistLoad() {
-  try {
-    const raw = localStorage.getItem('expojudge_stalls');
-    const meta = localStorage.getItem('expojudge_meta');
-    if (raw) {
-      stalls = JSON.parse(raw);
-      if (meta) {
-        const m = JSON.parse(meta);
-        currentIndex = Math.min(m.currentIndex||0, Math.max(stalls.length-1,0));
-        currentTone = m.currentTone || 'encouraging';
-        notesExpanded = m.notesExpanded || false;
+  let payload = null;
+
+  // Try current key
+  try { payload = localStorage.getItem(LS_KEY); } catch(e) {}
+
+  // Fallback: previous version key
+  if (!payload) {
+    try { payload = localStorage.getItem('expojudge_v2'); } catch(e) {}
+  }
+
+  // Legacy migration
+  if (!payload) {
+    try {
+      const oldStalls = localStorage.getItem('expojudge_stalls');
+      if (oldStalls) {
+        const oldMeta = localStorage.getItem('expojudge_meta');
+        const m = oldMeta ? JSON.parse(oldMeta) : {};
+        payload = JSON.stringify({ stalls: JSON.parse(oldStalls), meta: m });
       }
-      if (stalls.length) {
-        showToast(`Restored ${stalls.filter(Boolean).length} stall(s) from last session`, 'info', 3000);
+    } catch(e) {}
+  }
+
+  if (payload) {
+    try {
+      const data = JSON.parse(payload);
+      stalls = Array.isArray(data.stalls) ? data.stalls : [];
+      const m = data.meta || {};
+      const validCount = stalls.filter(Boolean).length;
+      currentIndex = Math.min(m.currentIndex||0, Math.max(validCount-1, 0));
+      currentTone = m.currentTone || 'encouraging';
+      notesExpanded = m.notesExpanded || false;
+      if (validCount > 0) {
+        showToast(`✓ Restored ${validCount} stall${validCount>1?'s':''} from last session`, 'info', 3500);
+        persistSave(); // re-save under current key immediately
       }
+    } catch(e) {
+      stalls = []; currentIndex = 0;
     }
-  } catch(e) {}
+  }
 }
+
 function setSaveBadge(saved) {
   const b = document.getElementById('saveBadge');
   const l = document.getElementById('saveLabel');
   if (!b||!l) return;
   b.classList.toggle('saved', saved);
-  l.textContent = saved ? 'auto-saved' : 'unsaved';
+  l.textContent = saved ? 'saved' : 'unsaved';
 }
+
+// No debounce — save immediately on every change
 function scheduleSave() {
-  setSaveBadge(false);
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(persistSave, 800);
+  persistSave(); // synchronous, instant
 }
-function onFormChange() { scheduleSave(); updateStepProgress(); updateActionButtons(); }
+
+function onFormChange() { persistSave(); updateStepProgress(); updateActionButtons(); }
+
+// Belt-and-suspenders: also save on every possible exit signal
+// These are synchronous localStorage calls so they complete before iOS kills process
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') persistSave();
+});
+window.addEventListener('pagehide', persistSave);
+window.addEventListener('blur', persistSave);
 
 /* ═══ Step Progress ═══ */
 function updateStepProgress() {
@@ -1222,22 +1292,21 @@ function getAvg() {
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  persistLoad();
   buildCriteria();
   document.querySelectorAll('.tone-pill').forEach(btn=>{
     btn.addEventListener('click',()=>{
       document.querySelectorAll('.tone-pill').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active'); currentTone = btn.dataset.tone;
-      scheduleSave(); updateActionButtons();
+      persistSave(); updateActionButtons();
     });
   });
+  persistLoad();
   if (stalls.filter(Boolean).length > 0) {
     loadStall(currentIndex);
   } else {
     updateStallDisplay();
     renderChipStrip();
   }
-  // Restore notes state
   if (notesExpanded) expandNotes();
   updateStepProgress();
 });
@@ -1810,6 +1879,50 @@ function printReport(){
   w.onload=()=>{w.focus();w.print();};
 }
 
+/* ═══ Export / Import Backup ═══ */
+function exportData() {
+  const valid = stalls.filter(Boolean);
+  if (!valid.length) { showToast('No data to export', 'error'); return; }
+  const payload = getPayload();
+  const blob = new Blob([payload], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `expojudge-backup-${date}.json`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast(`✓ Backup saved — ${valid.length} stall${valid.length>1?'s':''}`, 'success', 3500);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.stalls || !Array.isArray(data.stalls)) throw new Error('Invalid format');
+      stalls = data.stalls;
+      const m = data.meta || {};
+      currentIndex = Math.min(m.currentIndex||0, Math.max(stalls.filter(Boolean).length-1, 0));
+      currentTone = m.currentTone || 'encouraging';
+      notesExpanded = m.notesExpanded || false;
+      persistSave();
+      buildCriteria();
+      if (stalls.filter(Boolean).length > 0) {
+        loadStall(currentIndex);
+      }
+      renderChipStrip(); updateStepProgress();
+      const count = stalls.filter(Boolean).length;
+      showToast(`✓ Imported ${count} stall${count>1?'s':''}`, 'success', 3500);
+    } catch(err) {
+      showToast('Import failed — invalid file', 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
 /* ═══ Clear Session Data ═══ */
 function confirmClearData() {
   const count = stalls.filter(Boolean).length;
@@ -1822,6 +1935,8 @@ function closeClearModal() {
 }
 function executeClearData() {
   try {
+    localStorage.removeItem('expojudge_v3');
+    localStorage.removeItem('expojudge_v2');
     localStorage.removeItem('expojudge_stalls');
     localStorage.removeItem('expojudge_meta');
   } catch(e) {}
@@ -1829,7 +1944,6 @@ function executeClearData() {
   currentIndex = 0;
   notesExpanded = false;
   closeClearModal();
-  // Reset UI
   newStall();
   renderChipStrip();
   document.getElementById('podiumSection').innerHTML = '';
@@ -1839,7 +1953,6 @@ function executeClearData() {
   showToast('All session data cleared', 'info', 3000);
 }
 </script>
--e 
 <!-- Confirmation Modal -->
 <div class="modal-overlay" id="clearModal">
   <div class="modal-sheet">
